@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator
 import numpy as np
 from scipy import linalg
 
@@ -16,6 +18,17 @@ def d2_my_gaussian(x: np.ndarray, alpha: float = 1.0) -> np.ndarray:
 
 def pot_harmonic(x: np.ndarray, omega: float = 1.0) -> np.ndarray:
     return 0.5 * omega ** 2 * x ** 2
+
+
+def my_gaussian2(grid: FD2d.FD2dGrid, alpha: float = 1.0):
+    N = grid.Npoints
+    f = np.zeros(N)
+    for i in range(N):
+        x = grid.r[0, i]
+        y = grid.r[1, i]
+        r2 = x ** 2 + y ** 2
+        f[i] = np.exp(-alpha * r2)
+    return f
 
 
 def test1():
@@ -113,7 +126,7 @@ def test7():
     """
     test the FD2dGrid constructor
     """
-    a = FD2d.FD2dGrid((-5.0, 5.0), 3, (-5.0, 5.0), 4)
+    a = FD2d.FD2dGrid((-5.0, 5.0), 10, (-5.0, 5.0), 10)
     print(a.x)
     print(a.y)
     print(a.r)
@@ -125,14 +138,42 @@ def test8():
     """
     a = FD2d.FD2dGrid((-5.0, 5.0), 3, (-5.0, 5.0), 4)
     for i in range(a.Npoints):
-        print(f"{i:3d} {a.r[0,i]:8.3f} {a.r[1,i]:8.3f}")
+        print(f"{i:3d} {a.r[0, i]:8.3f} {a.r[1, i]:8.3f}")
+
+
+def test9():
+    """
+    test the build_D2_matrix in FD2d
+    """
+    grid = FD2d.FD2dGrid((-5.0, 5.0), 5, (-5.0, 5.0), 5)
+    D2 = FD2d.build_D2_matrix(grid)
+    print(type(D2))
+    print(D2)
+
+
+def test10():
+    """
+    plot D2
+    """
+    Nx = 75
+    Ny = 75
+    grid = FD2d.FD2dGrid((-5.0, 5.0), Nx, (-5.0, 5.0), Ny)
+    X, Y = np.meshgrid(grid.x, grid.y)
+    print(grid)
+    D2 = FD2d.build_D2_matrix(grid)
+    fg = my_gaussian2(grid)
+    D2fg = D2 * fg
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    # Plot the surface.
+    surf = ax.plot_surface(X, Y, D2fg.reshape((Nx, Ny)), cmap=cm.jet,
+                           linewidth=0, antialiased=False)
+    plt.show()
 
 
 def main():
     # test4(51)
     # test5(51)
-    # test7()
-    test8()
+    test10()
 
 
 if __name__ == "__main__":
