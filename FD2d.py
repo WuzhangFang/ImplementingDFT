@@ -1,5 +1,8 @@
-import FD1d
 import numpy as np
+
+import FD1d
+
+from scipy import sparse
 
 
 class FD2dGrid:
@@ -30,3 +33,18 @@ class FD2dGrid:
                 idx_xy2ip[i, j] = ip
                 ip = ip + 1
         return r, idx_xy2ip, idx_ip2xy
+
+
+def build_D2_matrix(grid: FD2dGrid):
+    """
+    take the FD2dGrid as input and return the D2 matrix
+    """
+    Nx = grid.Nx
+    Ny = grid.Ny
+    hx = grid.hx
+    hy = grid.hy
+    D2x = FD1d.build_D2_matrix_5pt(Nx, hx)
+    D2y = FD1d.build_D2_matrix_5pt(Ny, hy)
+    D2 = sparse.kron(D2x, sparse.eye(Ny)) + sparse.kron(sparse.eye(Nx), D2y)
+
+    return D2
